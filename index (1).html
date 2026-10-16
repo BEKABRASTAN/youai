@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>YouAI</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root,[data-theme=light]{--bg:#f4f1ea;--card:#ffffffd9;--ink:#1b2030;--mute:#6a7086;--line:#1b203014;--acc:#2a5cff;--acc2:#8a5cff;--ok:#16a05a;--bad:#d9455a;--on:#fff;--sh:0 8px 24px #1b203014}
+[data-theme=dark]{--bg:#0f1220;--card:#1b2036d9;--ink:#eef0f8;--mute:#9aa2bd;--line:#ffffff14;--acc:#5b7cff;--acc2:#a06cff;--ok:#43d392;--bad:#ff6b81;--on:#fff;--sh:0 8px 24px #0006}
+[data-theme=neon]{--bg:#0b0614;--card:#1a0f2ad9;--ink:#fbeaff;--mute:#b89ad0;--line:#ff3df233;--acc:#ff3df2;--acc2:#3df0ff;--ok:#5bffb0;--bad:#ff6b81;--on:#14001f;--sh:0 0 24px #ff3df222}
+[data-theme=sunset]{--bg:#2a1020;--card:#3a1a2fd9;--ink:#fff1e8;--mute:#dba9a0;--line:#ffffff1a;--acc:#ff7a45;--acc2:#ffb347;--ok:#7be495;--bad:#ff8a8a;--on:#2a1020;--sh:0 8px 24px #0005}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(700px 420px at 85% -5%,color-mix(in srgb,var(--acc) 30%,transparent),transparent),radial-gradient(600px 400px at -10% 30%,color-mix(in srgb,var(--acc2) 20%,transparent),transparent),var(--bg);background-attachment:fixed;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);transition:background .3s,color .3s}
+.wrap{max-width:480px;margin:0 auto;padding:18px 16px 28px}
+h1{font-size:34px;font-weight:900;letter-spacing:-1px;line-height:1}
+h1 b,.big{background:linear-gradient(120deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+h3{font-size:15px;margin:22px 0 10px;color:var(--mute);font-weight:700}
+.sub{color:var(--mute);margin:6px 0 18px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.side{display:flex;align-items:center;gap:10px}
+.dots{display:flex;gap:6px}
+.dot{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;box-shadow:0 0 0 1px var(--line)}
+.dot.on{border-color:var(--ink)}
+.coins{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-weight:800;box-shadow:var(--sh);white-space:nowrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:14px;margin-bottom:12px;box-shadow:var(--sh);backdrop-filter:blur(10px)}
+.topic{display:flex;gap:14px;align-items:center;cursor:pointer;width:100%;text-align:left;color:var(--ink);font:inherit;transition:transform .15s}
+.topic:active{transform:scale(.97)}
+.tile{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:26px;flex:none;box-shadow:0 6px 14px #0003}
+.grow{flex:1;min-width:0}
+.name{font-weight:800;display:flex;justify-content:space-between;gap:8px}
+.lv{font-size:12px;font-weight:800;color:var(--on);background:linear-gradient(120deg,var(--acc),var(--acc2));border-radius:99px;padding:1px 9px;align-self:center}
+.prog{height:7px;background:var(--line);border-radius:4px;margin:7px 0 4px;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:4px;transition:width .4s}
+.small{font-size:13px;color:var(--mute)}
+button.btn{background:linear-gradient(120deg,var(--acc),var(--acc2));color:var(--on);border:0;border-radius:16px;padding:14px 16px;font:inherit;font-weight:800;width:100%;cursor:pointer;box-shadow:0 8px 18px color-mix(in srgb,var(--acc) 35%,transparent);transition:transform .15s}
+button.btn:active{transform:scale(.97)}
+button.btn:disabled{opacity:.4}
+button.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);box-shadow:none}
+.tbar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:12px}
+.tbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width 1s linear}
+.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-weight:700;font-size:14px}
+.timer{font-size:34px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.timer.low{color:var(--bad)}
+.msg{display:flex;gap:10px;margin-bottom:12px;animation:pop .25s ease-out}
+@keyframes pop{from{transform:translateY(8px) scale(.97);opacity:0}}
+@media (prefers-reduced-motion:reduce){.msg{animation:none}}
+.ava{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:var(--card);border:1px solid var(--line);flex:none}
+.bubble{background:var(--card);border:1px solid var(--line);border-radius:6px 20px 20px 20px;padding:12px 16px;font-size:17px;font-weight:600;box-shadow:var(--sh)}
+.who{font-size:12px;color:var(--mute);font-weight:600;margin-bottom:2px}
+.fb{border-radius:16px;padding:12px 14px;margin:10px 0;font-size:14px;border:1px solid var(--line)}
+.fb.good{background:color-mix(in srgb,var(--ok) 18%,transparent)}
+.fb.bad{background:color-mix(in srgb,var(--bad) 16%,transparent)}
+textarea{width:100%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);border-radius:18px;padding:12px 14px;font:inherit;resize:none;height:100px;margin:6px 0 10px;outline:0}
+textarea:focus{border-color:var(--acc)}
+.row{display:flex;gap:8px}
+.row .btn{padding:10px 6px;font-size:14px;border-radius:14px}
+.big{font-size:72px;font-weight:900;text-align:center;letter-spacing:-3px;line-height:1.1}
+.center{text-align:center}
+.shop{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.shop button{width:auto;padding:8px 14px;border-radius:12px}
+hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+const tg = window.Telegram && Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+/* ---------- ДАННЫЕ ---------- */
+// p: список пунктов правильного ответа; в каждом пункте — основы слов, любая из них засчитывает пункт
+const TOPICS = {
+  med:{n:'Медицина',i:'🩺',q:[
+    {t:'Как остановить кровь из носа?',p:[['наклон','вперед','вперёд'],['прижм','сдави','пальц'],['холод','лед','лёд'],['10','минут']]},
+    {t:'Что делать, если у взрослого температура 38,5?',p:[['пить','вод','жидк'],['парацетамол','ибупрофен','жаропонижающ'],['покой','постел','отдых'],['врач','скор']]},
+    {t:'Как помочь при ожоге кипятком?',p:[['холодн','прохладн','вод'],['10','15','20','минут'],['не мазать','не смазы','без масла'],['повязк','стерильн','чист']]},
+    {t:'Зачем нужны антибиотики?',p:[['бактер'],['не от вирус','не помога','вирус'],['курс','до конца'],['врач','назнач']]},
+    {t:'Что значит давление 120/80?',p:[['верхн','систол'],['нижн','диастол'],['норм'],['мм','ртутн']]}]},
+  sport:{n:'Спорт',i:'🏃',q:[
+    {t:'Как правильно разминаться перед тренировкой?',p:[['суставн','сустав'],['пульс','кардио','бег','легк'],['растяж','динамич'],['5','10','минут']]},
+    {t:'Сколько игроков одной команды на поле в футболе?',p:[['11','одиннадцат'],['вратар'],['10','полев']]},
+    {t:'Как правильно приседать?',p:[['спин','прям'],['колен','носк'],['пят'],['бедр','параллел','таз']]},
+    {t:'Какая дистанция у марафона?',p:[['42'],['195'],['бег'],['греци','афин','марафон']]},
+    {t:'Зачем пить воду на тренировке?',p:[['пот'],['обезвож'],['потер','теря'],['выносл','самочувств','судорог','температур']]}]},
+  lit:{n:'Литература',i:'📚',q:[
+    {t:'О чём «Преступление и наказание»?',p:[['раскольников'],['убий','старух','процентщиц'],['совест','раскаян','наказан'],['достоевск','соня']]},
+    {t:'Кто автор «Евгения Онегина» и что это за произведение?',p:[['пушкин'],['стих','роман в стих'],['татьян','ленск','дуэл','онегин']]},
+    {t:'Что такое метафора?',p:[['перенос','переносн'],['сходств','сравн'],['слов','выражен','образ'],['пример','золот','осень','море']]},
+    {t:'Кто написал «Мастера и Маргариту»?',p:[['булгаков'],['воланд','дьявол','сатан'],['москв'],['мастер','маргарит','любов']]},
+    {t:'Что такое эпитет?',p:[['определен','описан'],['образ','выразител','художеств'],['прилагат','слов']]}]},
+  phys:{n:'Физика',i:'⚛️',q:[
+    {t:'Почему небо голубое?',p:[['рассея','рэлей'],['свет','солн'],['синий','голуб','коротк'],['атмосфер','воздух','молекул']]},
+    {t:'Что такое гравитация?',p:[['притяж'],['масс'],['земл','планет'],['ньютон','эйнштейн','9,8','9.8']]},
+    {t:'Почему гремит гром?',p:[['молни'],['нагре','разряд','плазм'],['воздух','расшир'],['звук','скорост','свет']]},
+    {t:'Какая скорость света?',p:[['300','299'],['км','тысяч'],['секунд'],['вакуум','предел','максим']]},
+    {t:'Как работает электрический ток?',p:[['заряд','электрон'],['провод','цеп'],['напряж','разност'],['движ','упорядоч','направл']]}]}
+};
+const BUFFS = {
+  freeze:{n:'❄️ Заморозка времени (+15 сек)',c:50},
+  auto:{n:'🤖 Автоответ (×0,7 очков)',c:80},
+  swap:{n:'🔄 Замена вопроса',c:40}
+};
+const PEOPLE = [['Аня','👩'],['Дима','👨'],['Бабушка Люда','👵'],['Макс','🧑'],['Оля','👧'],['Игорь','🧔'],['Кирилл','🧒'],['Света','👩‍🦰']];
+const ROUND_SEC = 120, GRACE_MS = 5000, BASE = 800;
+
+/* ---------- СОХРАНЕНИЕ ---------- */
+// ВАЖНО: в боевой версии очки должен считать сервер. Здесь всё локально для прототипа.
+let S = load();
+function load(){
+  try { const s = JSON.parse(localStorage.getItem('youai')); if (s) return s; } catch(e){}
+  const t = {}; Object.keys(TOPICS).forEach(k => t[k] = {lvl:0, xp:0});
+  return {coins:100, topics:t, buffs:{freeze:0,auto:0,swap:0}};
+}
+function save(){ try { localStorage.setItem('youai', JSON.stringify(S)); } catch(e){} }
+const need = lvl => Math.round(500 * Math.pow(1.5, lvl)); // 500, 750, 1125, 1688...
+
+/* ---------- ТЕМЫ ---------- */
+const THEMES={light:['Светлая','#f4f1ea','#2a5cff','#8a5cff'],dark:['Тёмная','#0f1220','#5b7cff','#a06cff'],neon:['Неон','#0b0614','#ff3df2','#3df0ff'],sunset:['Закат','#2a1020','#ff7a45','#ffb347']};
+function setTheme(t){
+  if(!THEMES[t]) t='light';
+  document.documentElement.dataset.theme=t; S.theme=t; save();
+  try{ if(tg){ tg.setHeaderColor(THEMES[t][1]); tg.setBackgroundColor(THEMES[t][1]); } }catch(e){}
+}
+
+/* ---------- ЭКРАНЫ ---------- */
+const app = document.getElementById('app');
+const $ = s => document.querySelector(s);
+
+function home(){
+  const TC={med:['#ff5d73','#ff9a8b'],sport:['#14c38e','#7be495'],lit:['#ffb020','#ffd36b'],phys:['#5b8cff','#9ec1ff'],mix:['#a06cff','#ff6cc6']};
+  const tile=k=>`background:linear-gradient(135deg,${TC[k][0]},${TC[k][1]})`;
+  const rows = Object.entries(TOPICS).map(([k,t]) => {
+    const d = S.topics[k], nx = need(d.lvl), pc = Math.min(100, d.xp / nx * 100);
+    return `<button class="card topic" data-k="${k}"><span class="tile" style="${tile(k)}">${t.i}</span>
+      <span class="grow"><span class="name">${t.n}<span class="lv">ур. ${d.lvl + 1}</span></span>
+      <div class="prog"><i style="width:${pc}%"></i></div>
+      <div class="small">${d.xp} / ${nx} очков</div></span></button>`;
+  }).join('');
+  const shop = Object.entries(BUFFS).map(([k,b]) =>
+    `<div class="shop"><div>${b.n}<div class="small">есть: ${S.buffs[k]}</div></div>
+     <button class="btn ghost" data-buy="${k}">${b.c} 🪙</button></div>`).join('<hr>');
+  const dots = Object.entries(THEMES).map(([k,t]) =>
+    `<button class="dot ${S.theme===k?'on':''}" data-t="${k}" title="${t[0]}" aria-label="Тема: ${t[0]}" style="background:linear-gradient(135deg,${t[2]} 50%,${t[3]} 50%)"></button>`).join('');
+  app.innerHTML = `<div class="bar"><h1>You<b>AI</b></h1><div class="side"><div class="dots">${dots}</div><div class="coins">🪙 ${S.coins}</div></div></div>
+    <p class="sub">Ты отвечаешь вместо ИИ. 2 минуты — чем точнее, тем больше очков.</p>
+    ${rows}
+    <button class="card topic" data-k="mix"><span class="tile" style="${tile('mix')}">🎲</span><span class="grow"><span class="name">Микс всех тем</span><div class="small">Очки ×1,2 за сложность</div></span></button>
+    <h3>Магазин баффов</h3><div class="card">${shop}</div>
+    <p class="small center">Игра, не медицинский совет.</p>`;
+  app.querySelectorAll('[data-k]').forEach(b => b.onclick = () => startRound(b.dataset.k));
+  app.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { setTheme(b.dataset.t); home(); });
+  app.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => {
+    const k = b.dataset.buy, c = BUFFS[k].c;
+    if (S.coins < c) return flash('Не хватает монет');
+    S.coins -= c; S.buffs[k]++; save(); home();
+  });
+}
+function flash(t){ if (tg && tg.showAlert) tg.showAlert(t); else alert(t); }
+
+/* ---------- РАУНД ---------- */
+let R = null;
+function pool(topic){
+  const keys = topic === 'mix' ? Object.keys(TOPICS) : [topic];
+  const all = [];
+  keys.forEach(k => TOPICS[k].q.forEach((q,i) => all.push({...q, k, id:k+i})));
+  return all.sort(() => Math.random() - .5);
+}
+function startRound(topic){
+  const lvl = topic === 'mix' ? Math.max(...Object.values(S.topics).map(x => x.lvl)) : S.topics[topic].lvl;
+  const p = pool(topic);
+  const count = Math.min(p.length, 3 + lvl); // чем выше уровень, тем больше вопросов за раунд
+  R = {topic, queue:p.slice(0,count), spare:p.slice(count), i:0, left:ROUND_SEC, score:0, done:0, answered:false, hiddenAt:null, timer:null, ended:false};
+  R.timer = setInterval(tick, 1000);
+  drawQ();
+}
+function drawQ(){
+  const q = R.queue[R.i], [nm, av] = PEOPLE[Math.floor(Math.random() * PEOPLE.length)];
+  R.answered = false;
+  app.innerHTML = `<div class="tbar"><i id="tb"></i></div><div class="hud"><div class="pill">Вопрос ${R.i + 1}/${R.queue.length}</div><div class="timer" id="tm"></div><div class="pill">⭐ <span id="sc">${R.score}</span></div></div>
+    <div class="msg"><div class="ava">${av}</div><div class="bubble"><div class="who">${nm}</div>${q.t}</div></div>
+    <div id="fb"></div>
+    <textarea id="ans" placeholder="Твой ответ..."></textarea>
+    <button class="btn" id="send">Отправить</button>
+    <div style="height:10px"></div>
+    <div class="row">
+      <button class="btn ghost" data-b="freeze">❄️ ${S.buffs.freeze}</button>
+      <button class="btn ghost" data-b="auto">🤖 ${S.buffs.auto}</button>
+      <button class="btn ghost" data-b="swap">🔄 ${S.buffs.swap}</button></div>`;
+  $('#send').onclick = () => submit($('#ans').value);
+  app.querySelectorAll('[data-b]').forEach(b => b.onclick = () => useBuff(b.dataset.b));
+  showTime();
+}
+function showTime(){
+  const el = $('#tm'); if (!el) return;
+  const m = Math.floor(R.left / 60), s = R.left % 60;
+  el.textContent = m + ':' + String(s).padStart(2,'0');
+  el.classList.toggle('low', R.left <= 15);
+  const b=$('#tb'); if(b) b.style.width=Math.min(100,R.left/ROUND_SEC*100)+'%';
+}
+function tick(){
+  if (!R || R.ended) return;
+  R.left--; showTime();
+  if (R.left <= 0) finish(false);
+}
+// Простая проверка по ключевым словам (прототип). Позже заменяется ИИ-судьёй на сервере.
+function grade(q, text){
+  const a = text.toLowerCase();
+  const hit = q.p.map(arr => arr.some(w => a.includes(w)));
+  return {pct: hit.filter(Boolean).length / q.p.length, hit};
+}
+function submit(text, factor = 1){
+  if (R.answered) return;
+  const q = R.queue[R.i];
+  if (!text.trim() && factor === 1) return;
+  R.answered = true;
+  const g = factor === 1 ? grade(q, text) : {pct:1, hit:q.p.map(() => true)};
+  let pts = Math.round(BASE * g.pct * factor);
+  if (R.topic === 'mix') pts = Math.round(pts * 1.2);
+  R.score += pts; R.done++;
+  const miss = q.p.map((arr,i) => g.hit[i] ? null : arr[0]).filter(Boolean);
+  const pctTxt = Math.round(g.pct * 100) + '%';
+  $('#fb').innerHTML = `<div class="fb ${g.pct >= .5 ? 'good' : 'bad'}"><b>Точность ${pctTxt} · +${pts} очков</b>${miss.length ? '<br>Не хватило: ' + miss.join(', ') : ''}</div>`;
+  $('#sc').textContent = R.score;
+  $('#send').textContent = R.i + 1 < R.queue.length ? 'Следующий вопрос' : 'Завершить раунд';
+  $('#send').onclick = () => { if (R.i + 1 < R.queue.length){ R.i++; drawQ(); } else finish(false); };
+  $('#ans').disabled = true;
+}
+function useBuff(k){
+  if (R.answered && k !== 'freeze') return;
+  if (S.buffs[k] < 1) return flash('Баффа нет. Купи в магазине на главном экране.');
+  S.buffs[k]--; save();
+  if (k === 'freeze') R.left += 15;
+  if (k === 'auto') submit('', .7);
+  if (k === 'swap'){
+    if (!R.spare.length) { S.buffs[k]++; save(); return flash('Запасных вопросов нет'); }
+    R.queue[R.i] = R.spare.shift();
+  }
+  if (k === 'swap') drawQ(); else { showTime(); refreshBuffBtns(); }
+}
+function refreshBuffBtns(){
+  app.querySelectorAll('[data-b]').forEach(b => b.textContent = {freeze:'❄️',auto:'🤖',swap:'🔄'}[b.dataset.b] + ' ' + S.buffs[b.dataset.b]);
+}
+
+/* ---------- ЗАВЕРШЕНИЕ ---------- */
+function finish(failed){
+  if (R.ended) return; R.ended = true; clearInterval(R.timer);
+  if (failed){
+    app.innerHTML = `<div class="card center" style="margin-top:40px"><div class="big">💥</div><h2>Раунд провален</h2>
+      <p class="sub">Ты вышел из приложения, очки не засчитаны.</p><button class="btn" id="ok">На главную</button></div>`;
+    $('#ok').onclick = home; R = null; return;
+  }
+  const score = R.score, coins = Math.floor(score / 10);
+  let up = 0;
+  if (R.topic !== 'mix'){
+    const d = S.topics[R.topic]; d.xp += score;
+    while (d.xp >= need(d.lvl)){ d.xp -= need(d.lvl); d.lvl++; up++; }
+  } else {
+    Object.values(S.topics).forEach(d => { d.xp += Math.round(score / 4); while (d.xp >= need(d.lvl)){ d.xp -= need(d.lvl); d.lvl++; up++; } });
+  }
+  S.coins += coins; save();
+  const maxPts = R.queue.length * BASE;
+  app.innerHTML = `<div class="card center" style="margin-top:24px"><div class="small">Раунд окончен</div>
+    <div class="big">${score}</div><div class="small">очков из ${maxPts}</div>
+    <p style="margin:12px 0">Отвечено: ${R.done} из ${R.queue.length}<br>Монеты: +${coins} 🪙${up ? '<br><b>🎉 Новый уровень!</b>' : ''}</p>
+    <button class="btn" id="again">Играть ещё</button><div style="height:8px"></div>
+    <button class="btn ghost" id="menu">На главную</button></div>`;
+  const t = R.topic; R = null;
+  $('#again').onclick = () => startRound(t);
+  $('#menu').onclick = home;
+}
+
+/* ---------- ДЕТЕКТ ВЫХОДА ИЗ ПРИЛОЖЕНИЯ ---------- */
+function away(){ if (R && !R.ended && !R.hiddenAt) R.hiddenAt = Date.now(); }
+function back(){
+  if (!R || R.ended || !R.hiddenAt) return;
+  const gone = Date.now() - R.hiddenAt; R.hiddenAt = null;
+  if (gone > GRACE_MS) finish(true);
+}
+document.addEventListener('visibilitychange', () => document.hidden ? away() : back());
+if (tg && tg.onEvent){ tg.onEvent('deactivated', away); tg.onEvent('activated', back); }
+
+setTheme(S.theme || (tg && tg.colorScheme==='dark' ? 'dark' : 'light'));
+home();
+</script>
+</body>
+</html>
